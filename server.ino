@@ -11,12 +11,12 @@ WiFiServer server(80);
 String header;
 
 // Auxiliar variables to store the current output state
-String output5State = "on";
-String output4State = "on";
+String  relay_2_state = "off";
+String  relay_1_state = "off";
 
 // Assign output variables to GPIO pins
-const int output5 = 5;
-const int output4 = 16;
+const int  relay_2 = 5; // D1
+const int  relay_1 = 16; // D0
 
 // Current time
 unsigned long currentTime = millis();
@@ -28,11 +28,11 @@ const long timeoutTime = 2000;
 void setup() {
   Serial.begin(9600);
   // Initialize the output variables as outputs
-  pinMode(output5, OUTPUT);
-  pinMode(output4, OUTPUT);
+  pinMode( relay_1, OUTPUT);
+  pinMode( relay_2, OUTPUT);
   // Set outputs to LOW
-  digitalWrite(output5, LOW);
-  digitalWrite(output4, LOW);
+  digitalWrite( relay_1, HIGH);
+  digitalWrite( relay_2, HIGH);
 
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
@@ -76,57 +76,57 @@ void loop(){
             client.println();
             
             // turns the GPIOs on and off
-            if (header.indexOf("GET /5/on") >= 0) {
-              Serial.println("GPIO 5 on");
-              output5State = "on";
-              digitalWrite(output5, HIGH);
-            } else if (header.indexOf("GET /5/off") >= 0) {
+            if (header.indexOf("GET /5/off") >= 0) {
               Serial.println("GPIO 5 off");
-              output5State = "off";
-              digitalWrite(output5, LOW);
-            } else if (header.indexOf("GET /4/on") >= 0) {
-              Serial.println("GPIO 4 on");
-              output4State = "on";
-              digitalWrite(output4, HIGH);
+               relay_2_state = "off";
+              digitalWrite( relay_2, HIGH);
+            } else if (header.indexOf("GET /5/on") >= 0) {
+              Serial.println("GPIO 5 on");
+               relay_2_state = "on";
+              digitalWrite( relay_2, LOW);
             } else if (header.indexOf("GET /4/off") >= 0) {
               Serial.println("GPIO 4 off");
-              output4State = "off";
-              digitalWrite(output4, LOW);
+               relay_1_state = "off";
+              digitalWrite( relay_1, HIGH);
+            } else if (header.indexOf("GET /4/on") >= 0) {
+              Serial.println("GPIO 4 on");
+               relay_1_state = "on";
+              digitalWrite( relay_1, LOW);
             }
             
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
             client.println("<link rel=\"icon\" href=\"data:,\">");
+           
             // CSS to style the on/off buttons 
-            // Feel free to change the background-color and font-size attributes to fit your preferences
             client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
             client.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;");
             client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
             client.println(".button2 {background-color: #77878A;}</style></head>");
             
             // Web Page Heading
-            client.println("<body><h1>ESP8266 Web Server</h1>");
-            
-            // Display current state, and ON/OFF buttons for GPIO 5  
-            client.println("<p>Relay 2 - State " + output5State + "</p>");
-            // If the output5State is off, it displays the ON button       
-            if (output5State=="off") {
-              client.println("<p><a href=\"/5/on\"><button class=\"button\">ON</button></a></p>");
-            } else {
-              client.println("<p><a href=\"/5/off\"><button class=\"button button2\">OFF</button></a></p>");
-            } 
-               
-            // Display current state, and ON/OFF buttons for GPIO 4  
-            client.println("<p>Relay 1 - State " + output4State + "</p>");
-            // If the output4State is off, it displays the ON button       
-            if (output4State=="off") {
+            client.println("<body><h1>Garduino ESP8266 Web Server</h1>");
+
+            // Display current state, and ON/OFF buttons for Relay 1
+            client.println("<p>Relay 1 - State " +  relay_1_state + "</p>");
+            // If the  relay_1_state is off, it displays the ON button       
+            if ( relay_1_state=="off") {
               client.println("<p><a href=\"/4/on\"><button class=\"button\">ON</button></a></p>");
             } else {
               client.println("<p><a href=\"/4/off\"><button class=\"button button2\">OFF</button></a></p>");
             }
             client.println("</body></html>");
-            
+
+            // Display current state, and ON/OFF buttons for Relay 2 
+            client.println("<p>Relay 2 - State " +  relay_2_state + "</p>");
+            // If the  relay_2_state is off, it displays the ON button       
+            if ( relay_2_state=="off") {
+              client.println("<p><a href=\"/5/on\"><button class=\"button\">ON</button></a></p>");
+            } else {
+              client.println("<p><a href=\"/5/off\"><button class=\"button button2\">OFF</button></a></p>");
+            } 
+               
             // The HTTP response ends with another blank line
             client.println();
             // Break out of the while loop
