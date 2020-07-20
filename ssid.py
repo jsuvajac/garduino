@@ -1,31 +1,33 @@
 import sys
 
 id_file = "id.txt"
-server_file = "server.ino"
+files = ["rest/rest.ino", "server/server.ino"]
 
 def main(args):
     if (args[1] == "remove"):
-        clean_cred()
+        for name in files:
+            clean_cred(name)
     elif (args[1] == "add"):
-        write_cred()
+        for name in files:
+            write_cred(name)
 
-def clean_cred():
+def clean_cred(server_file):
     with open(server_file) as f:
         lines = f.readlines()
 
     with open(server_file, "w") as f:
         for line in lines:
-            if ("const char* ssid" in line):
+            if ("const char* wifi_ssid" in line):
                 line = line.split("\"")
                 line = line[0] + "\"\"" + line[2]
 
-            elif ("const char* password" in line):
+            elif ("const char* wifi_passwd" in line):
                 line = line.split("\"")
                 line = line[0] + "\"\"" + line[2]
 
             f.write(line)
 
-def write_cred():
+def write_cred(server_file):
     with open(id_file) as f:
         ssid = f.readline().rstrip()
         password = f.readline().rstrip()
@@ -35,11 +37,11 @@ def write_cred():
 
     with open(server_file, "w") as f:
         for line in lines:
-            if ("const char* ssid" in line):
+            if ("const char* wifi_ssid" in line):
                 line = line.split("\"")
                 line = line[0] + '"' + ssid + '"' +line[2]
                 
-            elif ("const char* password" in line):
+            elif ("const char* wifi_passwd" in line):
                 line = line.split("\"")
                 line = line[0] + '"' + password + '"' +line[2]
 
