@@ -19,9 +19,13 @@ def set_response(id, gpio, status):
 def get_status(conn):
     conn.request("GET", "/leds")
     res = conn.getresponse()
-    binary = res.read()
-    json_resp = json.loads(binary.decode())
-    print("individual: ", res.status, res.reason, json_resp)
+    if res.status != 204:
+        binary = res.read()
+        json_resp = json.loads(binary.decode())
+        print("server_state: ", res.status, res.reason, json_resp)
+    else:
+        print("server_state: No previous state")
+
 
 def post(conn, id, gpio, status):
     conn.request("POST", "/leds", json.dumps(set_response(id, gpio, status)))
@@ -44,5 +48,10 @@ if __name__ == "__main__":
     conn = http.client.HTTPConnection(ESP_IP)
     get_status(conn)
 
+    print("watering solenoid 1...")
     trigger_solenoid(1, SOLENOID_1)
+    get_status(conn)
+
+    print("watering solenoid 2...")
     trigger_solenoid(2, SOLENOID_2)
+    get_status(conn)
