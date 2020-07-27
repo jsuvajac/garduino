@@ -28,8 +28,8 @@ int init_wifi() {
     int retries = 0;
 
     Serial.println("Connecting to WiFi AP..........");
-
     WiFi.mode(WIFI_STA);
+    WiFi.hostname("Garduino REST");
     WiFi.begin(wifi_ssid, wifi_passwd);
     // check the status of WiFi connection to be WL_CONNECTED
     while ((WiFi.status() != WL_CONNECTED) && (retries < MAX_WIFI_INIT_RETRY)) {
@@ -41,8 +41,7 @@ int init_wifi() {
 }
 
 void get_leds() {
-    StaticJsonBuffer<200> jsonBuffer;
-    JsonObject& jsonObj = jsonBuffer.createObject();
+    StaticJsonDocument<200> jsonObj;
     char JSONmessageBuffer[200];
 
     if (led_resource.id == 0)
@@ -51,12 +50,12 @@ void get_leds() {
         jsonObj["id"] = led_resource.id;
         jsonObj["gpio"] = led_resource.gpio;
         jsonObj["status"] = led_resource.status;
-        jsonObj.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
+        serializeJson(jsonObj, JSONmessageBuffer, sizeof(JSONmessageBuffer));
         http_rest_server.send(200, "application/json", JSONmessageBuffer);
     }
 }
 
-void json_to_resource(JsonObject& jsonBody) {
+void json_to_resource(StaticJsonDocument<500> jsonBody) {
     int id, gpio, status;
 
     id = jsonBody["id"];
@@ -73,16 +72,16 @@ void json_to_resource(JsonObject& jsonBody) {
 }
 
 void post_put_leds() {
-    StaticJsonBuffer<500> jsonBuffer;
+    StaticJsonDocument<500> jsonBody;
     String post_body = http_rest_server.arg("plain");
     Serial.println(post_body);
 
-    JsonObject& jsonBody = jsonBuffer.parseObject(http_rest_server.arg("plain"));
+    DeserializationError error = deserializeJson(jsonBody, http_rest_server.arg("plain"));
 
     Serial.print("HTTP Method: ");
     Serial.println(http_rest_server.method());
     
-    if (!jsonBody.success()) {
+    if (error) {
         Serial.println("error in parsin json body");
         http_rest_server.send(400);
     }
