@@ -2,6 +2,7 @@ import http.client
 import json
 import time
 import sys
+import argparse
 
 WATERING_TIME = 3 # in sec
 
@@ -24,7 +25,6 @@ def get_status(conn):
         print("server_state: ", res.status, res.reason, json_resp)
     else:
         print("server_state: No previous state")
-
 
 def post(conn, id, gpio, status):
     conn.request("POST", "/leds", json.dumps(set_response(id, gpio, status)))
@@ -61,8 +61,13 @@ def main(ip):
     get_status(conn)
 
 if __name__ == "__main__":
-    print(sys.argv)
-    if len(sys.argv) == 2:
-        main(sys.argv[1])
-    else:
-        print(f"Usage: {sys.argv[0]} ip")
+    parser = argparse.ArgumentParser(description="plant watering client for ESP REST API")
+    parser.add_argument("ip", type=str, help="ip of ESP MCU")
+    parser.add_argument("-t", "--time", type=float, action='store', help="watering time in seconds")
+    args = parser.parse_args()
+
+    if args.time and args.time > 0:
+        WATERING_TIME = args.time
+
+    if args.ip:
+        main(args.ip)
