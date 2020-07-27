@@ -1,13 +1,12 @@
 import http.client
 import json
 import time
+import sys
 
 WATERING_TIME = 3 # in sec
 
 SOLENOID_1 = 16
 SOLENOID_2 = 5
-
-ESP_IP = "192.168.0.40"
 
 def set_response(id, gpio, status):
     return {
@@ -37,21 +36,33 @@ def put(conn, id, gpio, status):
     r2 = conn.getresponse()
     print(r2.status, r2.reason)
 
-def trigger_solenoid(id, solenoid):
+def trigger_solenoid(conn, id, solenoid):
     post(conn, id, solenoid, 0)
     put(conn, id, solenoid, 0)
     time.sleep(WATERING_TIME)
     put(conn, id, solenoid, 1)
 
 
-if __name__ == "__main__":
-    conn = http.client.HTTPConnection(ESP_IP)
-    get_status(conn)
+def main(ip):
+    conn = http.client.HTTPConnection(ip)
+
+    try:
+        get_status(conn)
+    except ConnectionRefusedError:
+        print(f"Connection refused for ip: {ip}")
+        exit(1)
 
     print("watering solenoid 1...")
-    trigger_solenoid(1, SOLENOID_1)
+    trigger_solenoid(conn, 1, SOLENOID_1)
     get_status(conn)
 
     print("watering solenoid 2...")
-    trigger_solenoid(2, SOLENOID_2)
+    trigger_solenoid(conn, 2, SOLENOID_2)
     get_status(conn)
+
+if __name__ == "__main__":
+    print(sys.argv)
+    if len(sys.argv) == 2:
+        main(sys.argv[1])
+    else:
+        print(f"Usage: {sys.argv[0]} ip")
