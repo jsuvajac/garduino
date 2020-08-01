@@ -106,7 +106,7 @@ def main(ip):
     try:
         get_status(conn)
     except ConnectionRefusedError:
-        print(f"Connection refused for ip: {ip}")
+        print("Connection refused for ip: {}".format(ip))
         exit(1)
 
     print("watering solenoid 1...")
